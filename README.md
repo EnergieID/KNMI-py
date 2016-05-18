@@ -22,9 +22,9 @@ All raw data is included as argument to the DataFrame
 (however, the data is lost once you start manipulating the frame, so you'll have to copy it)
 
 # Example
-`df = knmi.get_day_data_dataframe(stations=[260])`
-`print(df.disclaimer)`
-`print(df.stations)`
-`print(df.legend)`
-`df.rename(columns=df.legend)`
+- `df = knmi.get_day_data_dataframe(stations=[260])`
+- `print(df.disclaimer)`
+- `print(df.stations)`
+- `print(df.legend)`
+- `df.rename(columns=df.legend)`
 
