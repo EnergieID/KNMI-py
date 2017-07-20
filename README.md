@@ -6,6 +6,13 @@ See http://knmi.nl/kennis-en-datacentrum/achtergrond/data-ophalen-vanuit-een-scr
 
 Currently only daily data is implemented.
 
+## Installation
+KNMI-py is available via pip.
+
+On Linux and Mac OS: `pip install knmi-py`
+
+On Windows: `python -m pip install knmi-py`
+
 ## 2 Functions
 - `knmi.get_day_data_raw(stations, start, end, inseason, variables)`
 - `knmi.get_day_data_dataframe(stations, start, end, inseason, variables)`
@@ -22,9 +29,13 @@ All raw data is included as argument to the DataFrame
 (however, the data is lost once you start manipulating the frame, so you'll have to copy it)
 
 # Example
-- `df = knmi.get_day_data_dataframe(stations=[260])`
-- `print(df.disclaimer)`
-- `print(df.stations)`
-- `print(df.legend)`
-- `df.rename(columns=df.legend)`
 
+````python
+import knmi
+df = knmi.get_day_data_dataframe(stations=[260])
+print(df.disclaimer)
+print(df.stations)
+print(df.legend)
+df = df.rename(columns=df.legend)
+print(df)
+```
