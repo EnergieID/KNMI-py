@@ -30,7 +30,7 @@ All raw data is included as argument to the DataFrame
 
 # Example
 
-````python
+```python
 import knmi
 df = knmi.get_day_data_dataframe(stations=[260])
 print(df.disclaimer)
