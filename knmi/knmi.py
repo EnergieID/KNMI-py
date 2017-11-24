@@ -2,7 +2,7 @@ import requests
 from .parsers import parse_day_data, parse_dataframe
 
 __title__ = "knmi-py"
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __author__ = "EnergieID.be"
 __license__ = "MIT"
 
@@ -13,9 +13,14 @@ def get_day_data_raw(stations, start=None, end=None, inseason=False, variables=N
 
     Parameters
     ----------
-    stations : list of KNMI station numbers
-    start : date (optional, default is begin of current month)
-    end : date (optional, default is today)
+    stations : [int]
+        list of KNMI station numbers
+    start : datetime.datetime | str
+        date (optional, default is begin of current month)
+        can be a datetime object, or a string in format "%Y%m%d"
+    end : datetime.datetime | str
+        date (optional, default is today)
+        can be a datetime object, or a string in format "%Y%m%d"
     inseason : bool (optional, default False)
         see http://www.knmi.nl/kennis-en-datacentrum/achtergrond/data-ophalen-vanuit-een-script
         for the full explanation
@@ -38,9 +43,13 @@ def get_day_data_raw(stations, start=None, end=None, inseason=False, variables=N
         "stns": ":".join(str(station) for station in stations),
     }
     if start is not None:
-        params.update({"start": start.strftime("%Y%m%d")})
+        if not isinstance(start, str):
+            start = start.strftime("%Y%m%d")
+        params.update({"start": start})
     if end is not None:
-        params.update({"end": end.strftime("%Y%m%d")})
+        if not isinstance(start, str):
+            end = end.strftime("%Y%m%d")
+        params.update({"end": end})
     if inseason is True:
         params.update({"inseason": "Y"})
     if variables is None:
