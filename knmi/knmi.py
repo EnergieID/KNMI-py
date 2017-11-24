@@ -69,9 +69,14 @@ def get_day_data_dataframe(stations, start=None, end=None, inseason=False, varia
 
     Parameters
     ----------
-    stations : list of KNMI station numbers
-    start : date (optional, default is begin of current month)
-    end : date (optional, default is today)
+    stations : [int]
+        list of KNMI station numbers
+    start : datetime.datetime | str
+        date (optional, default is begin of current month)
+        can be a datetime object, or a string in format "%Y%m%d"
+    end : datetime.datetime | str
+        date (optional, default is today)
+        can be a datetime object, or a string in format "%Y%m%d"
     inseason : bool (optional, default False)
         see http://www.knmi.nl/kennis-en-datacentrum/achtergrond/data-ophalen-vanuit-een-script
         for the full explanation
