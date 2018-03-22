@@ -1,5 +1,5 @@
 import requests
-from .parsers import parse_day_data, parse_dataframe
+from .parsers import parse_day_data, parse_dataframe, parse_forecast_data
 
 __title__ = "knmi-py"
 __version__ = "0.1.1"
@@ -103,3 +103,21 @@ def get_day_data_dataframe(stations, start=None, end=None, inseason=False, varia
     df.disclaimer = disclaimer
 
     return df
+
+
+def get_forecast_dataframe():
+    """
+    Get 6 day forecast from KNMI as a Pandas DataFrame
+
+    Returns
+    -------
+    Pandas DataFrame
+    """
+
+    url = 'http://www.knmi.nl/nederland-nu/weer/verwachtingen'
+
+    r = requests.get(url)
+    if r.status_code != 200:
+        raise requests.HTTPError(r.status_code, url)
+
+    return parse_forecast_data(raw=r.content)
