@@ -104,14 +104,22 @@ def get_day_data_dataframe(stations, start=None, end=None, inseason=False, varia
     return df
 
 
-def get_forecast_dataframe():
+def get_forecast_dataframe(station=260):
     """
     Get 6 day forecast from KNMI as a Pandas DataFrame
+
+    Parameters
+    ----------
+    station : int
+        default 260 (De Bilt)
+        No other stations supported right now
 
     Returns
     -------
     Pandas DataFrame
     """
+    if station != 260:
+        raise NotImplementedError("Only station 260 (De Bilt) is supported for forecasts")
 
     url = 'http://www.knmi.nl/nederland-nu/weer/verwachtingen'
 
