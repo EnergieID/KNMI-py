@@ -109,7 +109,12 @@ def parse_forecast_data(raw):
         forecasts.append(single_forecast)
 
     df = pd.DataFrame(forecasts)
+
+    df.datum = pd.DatetimeIndex(df.datum)
     df = df.set_index('datum')
+    df.index.name = None
+    df = df.tz_localize('Europe/Amsterdam')
+
     return df
 
 
