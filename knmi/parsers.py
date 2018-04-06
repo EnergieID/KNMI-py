@@ -1,7 +1,6 @@
 import re
 from io import StringIO
-from datetime import datetime
-
+import datetime as dt
 import pandas as pd
 from bs4 import BeautifulSoup
 
@@ -97,7 +96,7 @@ def parse_forecast_data(raw):
     for li in forecast_list.find_all('li'):
         spans = li.find_all('span')
         single_forecast = {
-            'datum': datetime.strptime(spans[0].text, '%d-%m-%Y').date(),
+            'datum': dt.datetime.strptime(spans[0].text, '%d-%m-%Y').date(),
             'temp_max': int(re.search('(\d+)°', spans[2].text).groups()[0]),
             'temp_min': int(re.search('(\d+)°', spans[4].text).groups()[0]),
             'neerslag': int(re.search('(\d+)mm', spans[6].text).groups()[0]),
