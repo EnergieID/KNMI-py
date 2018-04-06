@@ -57,8 +57,7 @@ def get_day_data_raw(stations, start=None, end=None, inseason=False, variables=N
     params.update({"vars": ":".join(variables)})
 
     r = requests.post(url=url, data=params)
-    if r.status_code != 200:
-        raise requests.HTTPError(r.status_code, url, params)
+    r.raise_for_status()
 
     return parse_day_data(raw=r.text)
 
@@ -117,7 +116,7 @@ def get_forecast_dataframe():
     url = 'http://www.knmi.nl/nederland-nu/weer/verwachtingen'
 
     r = requests.get(url)
-    if r.status_code != 200:
-        raise requests.HTTPError(r.status_code, url)
+    r.raise_for_status()
 
-    return parse_forecast_data(raw=r.content)
+    df = parse_forecast_data(raw=r.content)
+    return df
