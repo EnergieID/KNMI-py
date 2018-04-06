@@ -1,6 +1,11 @@
-import pandas as pd
+import re
 from io import StringIO
+import datetime as dt
+import pandas as pd
+from bs4 import BeautifulSoup
+
 from .metadata import Station
+
 
 def parse_day_data(raw):
     """
@@ -69,6 +74,47 @@ def parse_day_data(raw):
     data = "\n".join(lines)
 
     return disclaimer, stations, legend, data
+
+
+def parse_forecast_data(raw):
+    """
+    Parse the raw html of KNMI forecast into relevant pieces.
+
+    Parameters
+    ----------
+    raw : str
+
+    Returns
+    -------
+    Pandas DataFrame
+    """
+
+    soup = BeautifulSoup(raw, "html.parser")
+    forecast_list = soup.find('ul', {'class': 'weather-map__table is-fullwidth'})
+
+    forecasts = []
+    for li in forecast_list.find_all('li'):
+        spans = li.find_all('span')
+        single_forecast = {
+            'datum': dt.datetime.strptime(spans[0].text, '%d-%m-%Y').date(),
+            'temp_max': int(re.search('(\d+)°', spans[2].text).groups()[0]),
+            'temp_min': int(re.search('(\d+)°', spans[4].text).groups()[0]),
+            'neerslag': int(re.search('(\d+)mm', spans[6].text).groups()[0]),
+            'neerslagkans': int(spans[8].text.split()[1].replace('%', '')) / 100,
+            'zonneschijn': int(spans[10].text.split()[1].replace('%', '')) / 100,
+            'windrichting': spans[12].text.split()[1],
+            'windkracht': int(spans[12].text.split()[-1])
+        }
+        forecasts.append(single_forecast)
+
+    df = pd.DataFrame(forecasts)
+
+    df.datum = pd.DatetimeIndex(df.datum)
+    df = df.set_index('datum')
+    df.index.name = None
+    df = df.tz_localize('Europe/Amsterdam')
+
+    return df
 
 
 def parse_dataframe(data):
