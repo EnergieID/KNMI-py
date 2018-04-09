@@ -135,10 +135,10 @@ def get_forecast_dataframe(station=260, conform_values=True, variables=None):
 
     if conform_values:
         df['STN'] = station
-        df['RH'] = df['neerslag'].map(lambda x: float(x) if x > 0 else -1)
-        df['TX'] = df['temp_max'].astype(float)
-        df['TN'] = df['temp_min'].astype(float)
-        df['FG'] = df['windkracht'].map(beaufort_mapping)
+        df['RH'] = df['neerslag'].map(lambda x: float(x) if x > 0 else -1) * 10
+        df['TX'] = df['temp_max'].astype(float) * 10
+        df['TN'] = df['temp_min'].astype(float) * 10
+        df['FG'] = df['windkracht'].map(beaufort_mapping) * 10
         df['DDVEC'] = df['windrichting'].map(winddir_mapping)
         df['SP'] = df['zonneschijn'].map(lambda x: int(x * 100))
 
