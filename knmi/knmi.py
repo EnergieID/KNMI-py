@@ -2,7 +2,7 @@ import requests
 from .parsers import parse_day_data, parse_dataframe, parse_forecast_data
 
 __title__ = "knmi-py"
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 __author__ = "EnergieID.be"
 __license__ = "MIT"
 
