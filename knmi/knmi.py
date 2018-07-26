@@ -47,7 +47,7 @@ def get_day_data_raw(stations, start=None, end=None, inseason=False, variables=N
             start = start.strftime("%Y%m%d")
         params.update({"start": start})
     if end is not None:
-        if not isinstance(start, str):
+        if not isinstance(end, str):
             end = end.strftime("%Y%m%d")
         params.update({"end": end})
     if inseason is True:
