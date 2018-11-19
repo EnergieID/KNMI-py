@@ -97,9 +97,9 @@ def get_day_data_dataframe(stations, start=None, end=None, inseason=False, varia
                                                           variables=variables)
 
     df = parse_dataframe(data=data)
-    df.legend = legend
-    df.stations = stations
-    df.disclaimer = disclaimer
+    df['legend'] = legend
+    df['stations'] = stations
+    df['disclaimer'] = disclaimer
 
     return df
 
