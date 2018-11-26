@@ -2,7 +2,7 @@ import requests
 from .parsers import parse_day_data, parse_dataframe, parse_forecast_data
 
 __title__ = "knmi-py"
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 __author__ = "EnergieID.be"
 __license__ = "MIT"
 
@@ -59,7 +59,8 @@ def get_day_data_raw(stations, start=None, end=None, inseason=False, variables=N
     r = requests.post(url=url, data=params)
     r.raise_for_status()
 
-    return parse_day_data(raw=r.text)
+    disclaimer, stations, legend, data = parse_day_data(raw=r.text)
+    return disclaimer, stations, legend, data
 
 
 def get_day_data_dataframe(stations, start=None, end=None, inseason=False, variables=None):
@@ -97,9 +98,9 @@ def get_day_data_dataframe(stations, start=None, end=None, inseason=False, varia
                                                           variables=variables)
 
     df = parse_dataframe(data=data)
-    df.legend = legend
-    df.stations = stations
-    df.disclaimer = disclaimer
+    # df.legend = legend
+    # df.stations = stations
+    # df.disclaimer = disclaimer
 
     return df
 
