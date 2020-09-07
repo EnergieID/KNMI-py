@@ -4,14 +4,14 @@ either as csv or Pandas DataFrame
 
 See http://knmi.nl/kennis-en-datacentrum/achtergrond/data-ophalen-vanuit-een-script
 
+Note: This library is not affiliated in any way with KNMI, it only uses the KNMI API to request data.
+
 Currently only daily data is implemented.
 
 ## Installation
 KNMI-py is available via pip.
 
-On Linux and Mac OS: `pip install knmi-py`
-
-On Windows: `python -m pip install knmi-py`
+`python -m pip install knmi-py`
 
 ## 2 Functions
 - `knmi.get_day_data_raw(stations, start, end, inseason, variables)`
@@ -39,3 +39,7 @@ print(df.legend)
 df = df.rename(columns=df.legend)
 print(df)
 ```
+
+## Disclaimer
+
+The KNMI-py Python library is not affiliated, created or maintained by KNMI. It merely uses the KNMI API to request data.
