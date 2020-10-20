@@ -13,9 +13,12 @@ KNMI-py is available via pip.
 
 `python -m pip install knmi-py`
 
-## 2 Functions
+## 5 Functions
 - `knmi.get_day_data_raw(stations, start, end, inseason, variables)`
 - `knmi.get_day_data_dataframe(stations, start, end, inseason, variables)`
+- `knmi.get_hour_data_raw(stations, start, end, inseason, variables)`
+- `knmi.get_hour_data_dataframe(stations, start, end, inseason, variables)`
+- `knmi.get_forecast_dataframe(station, conform_values, variables)`
 
 ## Metadata
 Don't know which station number you need, or what the variables mean?
