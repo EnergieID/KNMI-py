@@ -121,7 +121,16 @@ def parse_dataframe(data):
     df = pd.read_csv(StringIO(data), index_col=1, converters={'YYYYMMDD': pd.Timestamp})
     df.index = pd.DatetimeIndex(df.index)
     df = df.tz_localize('Europe/Amsterdam')
+    return df
 
+
+def parse_hourly_dataframe(data) -> pd.DataFrame:
+    def date_parser(date, hh):
+        return pd.Timestamp(date).replace(hour=int(hh) - 1)
+
+    df = pd.read_csv(StringIO(data), parse_dates=[['YYYYMMDD', 'HH']],
+                     date_parser=date_parser)
+    df.set_index('YYYYMMDD_HH', inplace=True)
     return df
 
 
