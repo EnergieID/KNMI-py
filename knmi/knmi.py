@@ -1,27 +1,65 @@
+from typing import List, Union, Optional, Dict
+import datetime as dt
+
 import requests
 from .parsers import parse_day_data, parse_dataframe, parse_forecast_data, parse_hourly_dataframe
 
 __title__ = "knmi-py"
-__version__ = "0.1.8"
+__version__ = "0.1.9"
 __author__ = "EnergieID.be"
 __license__ = "MIT"
 
 
-def get_day_data_raw(stations, start=None, end=None, inseason=False, variables=None):
+def _get_parameters(
+        stations: Union[List[int], str],
+        start: Union[dt.date, str],
+        end: Union[dt.date, str],
+        inseason: bool = False,
+        variables: Optional[List[str]] = None,
+        *,
+        include_hour=False,
+) -> Dict:
+
+    if start is None or end is None:
+        raise TypeError("'start' and 'end' parameters are required")
+
+    params = {}
+    if isinstance(stations, str) and stations.upper() == "ALL":
+        params["stns"] = "ALL"
+    else:
+        params["stns"] = ":".join(str(station) for station in stations)
+
+    if not isinstance(start, str):
+        start = start.strftime("%Y%m%d%H") if include_hour else start.strftime("%Y%m%d")
+    params["start"] = start
+
+    if not isinstance(end, str):
+        end = end.strftime("%Y%m%d%H") if include_hour else end.strftime("%Y%m%d")
+    params["end"] = end
+
+    if inseason is True:
+        params["inseason"] = "Y"
+
+    if variables is None:
+        variables = ["ALL"]
+    params["vars"] = ":".join(variables)
+
+    return params
+
+
+def get_day_data_raw(stations: Union[List[int], str], start: Union[dt.date, str], end: Union[dt.date, str], inseason: bool = False, variables: Optional[List[str]] = None):
     """
     Get daily weather data from KNMI
 
     Parameters
     ----------
-    stations : [int]
-        list of KNMI station numbers
-    start : datetime.datetime | str
-        date (optional, default is begin of current month)
+    stations
+        list of KNMI station numbers, or 'ALL'
+    start
         can be a datetime object, or a string in format "%Y%m%d"
-    end : datetime.datetime | str
-        date (optional, default is today)
+    end
         can be a datetime object, or a string in format "%Y%m%d"
-    inseason : bool (optional, default False)
+    inseason
         see http://www.knmi.nl/kennis-en-datacentrum/achtergrond/data-ophalen-vanuit-een-script
         for the full explanation
     variables : list of variables to fetch (optional, default is ALL)
@@ -38,23 +76,8 @@ def get_day_data_raw(stations, start=None, end=None, inseason=False, variables=N
     disclaimer, stations, legend, data
     """
 
-    url = "http://projects.knmi.nl/klimatologie/daggegevens/getdata_dag.cgi"
-    params = {
-        "stns": ":".join(str(station) for station in stations),
-    }
-    if start is not None:
-        if not isinstance(start, str):
-            start = start.strftime("%Y%m%d")
-        params.update({"start": start})
-    if end is not None:
-        if not isinstance(end, str):
-            end = end.strftime("%Y%m%d")
-        params.update({"end": end})
-    if inseason is True:
-        params.update({"inseason": "Y"})
-    if variables is None:
-        variables = ['ALL']
-    params.update({"vars": ":".join(variables)})
+    url = "https://www.daggegevens.knmi.nl/klimatologie/daggegevens"
+    params = _get_parameters(stations, start, end, inseason, variables)
 
     r = requests.post(url=url, data=params)
     r.raise_for_status()
@@ -63,7 +86,7 @@ def get_day_data_raw(stations, start=None, end=None, inseason=False, variables=N
     return disclaimer, stations, legend, data
 
 
-def get_day_data_dataframe(stations, start=None, end=None, inseason=False, variables=None):
+def get_day_data_dataframe(stations: Union[List[int], str], start=None, end=None, inseason=False, variables=None):
     """
     Get daily weather data from KNMI as a Pandas DataFrame
 
@@ -80,14 +103,9 @@ def get_day_data_dataframe(stations, start=None, end=None, inseason=False, varia
     inseason : bool (optional, default False)
         see http://www.knmi.nl/kennis-en-datacentrum/achtergrond/data-ophalen-vanuit-een-script
         for the full explanation
-    variables : list of variables to fetch (optional, default is ALL)
-        WIND = DDVEC:FG:FHX:FHX:FX wind
-        TEMP = TG:TN:TX:T10N temperatuur
-        SUNR = SQ:SP:Q Zonneschijnduur en globale straling
-        PRCP = DR:RH:EV24 neerslag en potentiële verdamping
-        PRES = PG:PGX:PGN druk op zeeniveau
-        VICL = VVN:VVX:NG zicht en bewolking
-        MSTR = UG:UX:UN luchtvochtigheid
+    variables
+        list of variables to fetch (optional, default is ALL)
+        See https://www.daggegevens.knmi.nl/klimatologie/daggegevens for the full list
 
     Returns
     -------
@@ -105,54 +123,32 @@ def get_day_data_dataframe(stations, start=None, end=None, inseason=False, varia
     return df
 
 
-def get_hour_data_raw(stations, start=None, end=None, inseason=False, variables=None):
+def get_hour_data_raw(stations: Union[List[int], str], start: Union[dt.date, str], end: Union[dt.date, str], inseason: bool = False, variables: Optional[List[str]] = None):
     """
     Get daily weather data from KNMI
 
     Parameters
     ----------
-    stations : [int]
+    stations
         list of KNMI station numbers
-    start : datetime.datetime | str
-        date (optional, default is begin of current month)
+    start
         can be a datetime object, or a string in format "%Y%m%d"
-    end : datetime.datetime | str
-        date (optional, default is today)
+    end
         can be a datetime object, or a string in format "%Y%m%d"
-    inseason : bool (optional, default False)
+    inseason
         see http://www.knmi.nl/kennis-en-datacentrum/achtergrond/data-ophalen-vanuit-een-script
         for the full explanation
-    variables : list of variables to fetch (optional, default is ALL)
-        WIND = DDVEC:FG:FHX:FHX:FX wind
-        TEMP = TG:TN:TX:T10N temperatuur
-        SUNR = SQ:SP:Q Zonneschijnduur en globale straling
-        PRCP = DR:RH:EV24 neerslag en potentiële verdamping
-        PRES = PG:PGX:PGN druk op zeeniveau
-        VICL = VVN:VVX:NG zicht en bewolking
-        MSTR = UG:UX:UN luchtvochtigheid
+    variables
+        list of variables to fetch (optional, default is ALL)
+        See https://www.daggegevens.knmi.nl/klimatologie/uurgegevens for the full list
 
     Returns
     -------
     disclaimer, stations, legend, data
     """
 
-    url = "http://projects.knmi.nl/klimatologie/uurgegevens/getdata_uur.cgi"
-    params = {
-        "stns": ":".join(str(station) for station in stations),
-    }
-    if start is not None:
-        if not isinstance(start, str):
-            start = start.strftime("%Y%m%d%H")
-        params.update({"start": start})
-    if end is not None:
-        if not isinstance(end, str):
-            end = end.strftime("%Y%m%d%H")
-        params.update({"end": end})
-    if inseason is True:
-        params.update({"inseason": "Y"})
-    if variables is None:
-        variables = ['ALL']
-    params.update({"vars": ":".join(variables)})
+    url = "https://www.daggegevens.knmi.nl/klimatologie/uurgegevens"
+    params = _get_parameters(stations, start, end, inseason, variables, include_hour=True)
 
     r = requests.post(url=url, data=params)
     r.raise_for_status()

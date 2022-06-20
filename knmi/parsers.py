@@ -1,77 +1,64 @@
+import itertools
 import re
 from io import StringIO
 import datetime as dt
+
 import pandas as pd
 from bs4 import BeautifulSoup
 
 from .metadata import Station
 
 
-def parse_day_data(raw):
+def parse_day_data(raw: str):
     """
     Parse the raw csv-esque response of KNMI into relevant pieces.
 
     Parameters
     ----------
-    raw : str
+    raw
+        raw csv text
 
     Returns
     -------
     disclaimer, stations, legend, header, data
     """
-    # split the raw text in chunks
-    chunks = chunk_splitter(raw=raw)
+    lines = raw.splitlines()
 
-    # parse the disclaimer
-    disclaimer = next(chunks)
-    disclaimer = "\n".join(line.strip("# ") for line in disclaimer)  # strip away the prefix '# ' and rejoin the lines
+    # Split the header and data
+    csv_header = list(itertools.takewhile(lambda line: line.startswith("#") or line.startswith('"#'), lines))
+    data_numeric = '\n'.join(lines[len(csv_header):]).replace(" ", "")
+    data_header = csv_header.pop(-1).replace("#", "").replace(" ", "")
+    data = data_header + "\n" + data_numeric
 
-    # parse the station list
-    stations_raw = next(chunks)
-    stations_raw = [line.strip("# ") for line in stations_raw]  # strip away the prefix '# '
+    disclaimer = "\n".join(line.lstrip('"#').lstrip("# ") for line in lines[0:5])
+
+    # parse the station list and legend
     stations = {}
-    for station in stations_raw[1:]:  # the first row is a header, so start from the second row
-        # split by double spaces, because a single space can exist in a name
-        # for each property, strip away spaces and colons
-        station_split = [prop.strip().strip(":") for prop in station.split("  ") if prop != ""]
-        try:
-            num, long, lat, alt, name = station_split
-        except ValueError:  # an invalid station was requested
-            print("Station {} returned invalid results".format(station_split[0]))
-        else:
-            stations.update(
-                {int(num): Station(number=int(num), longitude=float(long), latitude=float(lat), altitude=float(alt),
-                                   name=name)}
-            )
-
-    # parse the legend
-    legend_raw = next(chunks)
-    # strip prefix '# ' and suffix '; '
-    legend_raw = [entry.strip("# ").strip("; ") for entry in legend_raw]
     legend = {}
-    for entry in legend_raw:
-        sp = entry.split("=")
-        # the key is the term before the first '='
-        key = sp[0].strip()
-        # the value is everthing that follows, so we rejoin everything with a '='
-        value = "=".join(sp[1:]).strip()
-        legend.update({key: value})
+    try:
+        start_station_line = [i for i, line in enumerate(csv_header) if line.startswith("# STN")][0] + 1
+        station_id_pattern = re.compile(r"# \d{3}")
+    except IndexError:
+        print("KNMI csv output format changed")
+        pass  # Format changed
+    else:
+        i = 0
+        for i, station_line in enumerate(itertools.takewhile(lambda line: station_id_pattern.match(line), csv_header[start_station_line:])):
+            station_split = station_line.lstrip("#").split()
+            try:
+                num, long, lat, alt, *name_elements = station_split
+            except ValueError:  # an invalid station was requested
+                print("Station returned invalid results: ", station_split)
+            else:
+                stations[int(num)] = Station(number=int(num), longitude=float(long), latitude=float(lat), altitude=float(alt),
+                                       name=" ".join(name_elements))
+        end_station_line = i + start_station_line
 
-    # parse the header
-    header = next(chunks)
-    header = header[0]  # the header is only one line
-    header = header.strip('# ').replace(' ', '')
-
-    # parse the data
-    data = next(chunks)
-    lines = []
-    for line in data:
-        lines.append(line.strip('# ').replace(' ', ''))
-
-    # join data and header
-    lines.insert(0, header)
-
-    data = "\n".join(lines)
+        # parse the legend
+        # the lines from which to retrieve the legend should be the remaining lines
+        for legend_line in csv_header[end_station_line+1:]:
+            key, *values = legend_line.lstrip("# ").split(":")
+            legend[key.strip()] = ":".join(values)  # Need to re-join because ':' is used in URLs and such
 
     return disclaimer, stations, legend, data
 
@@ -97,9 +84,9 @@ def parse_forecast_data(raw):
         spans = li.find_all('span')
         single_forecast = {
             'datum': dt.datetime.strptime(spans[0].text, '%d-%m-%Y').date(),
-            'temp_max': int(re.search('(\d+)°', spans[2].text).groups()[0]),
-            'temp_min': int(re.search('(\d+)°', spans[4].text).groups()[0]),
-            'neerslag': int(re.search('(\d+)mm', spans[6].text).groups()[0]),
+            'temp_max': int(re.search(r'(\d+)°', spans[2].text).groups()[0]),
+            'temp_min': int(re.search(r'(\d+)°', spans[4].text).groups()[0]),
+            'neerslag': int(re.search(r'(\d+)mm', spans[6].text).groups()[0]),
             'neerslagkans': int(spans[8].text.split()[1].replace('%', '')) / 100,
             'zonneschijn': int(spans[10].text.split()[1].replace('%', '')) / 100,
             'windrichting': spans[12].text.split()[1],
@@ -126,35 +113,10 @@ def parse_dataframe(data):
 
 def parse_hourly_dataframe(data) -> pd.DataFrame:
     def date_parser(date, hh):
-        return pd.Timestamp(date).replace(hour=int(hh) - 1)
+        datetimes = [dt.datetime.strptime(date, "%Y%m%d") + dt.timedelta(hours=int(h) - 1) for date, h in zip(date, hh)]
+        return pd.to_datetime(datetimes)
 
-    df = pd.read_csv(StringIO(data), parse_dates=[['YYYYMMDD', 'HH']],
+    df = pd.read_csv(StringIO(data), parse_dates=[['YYYYMMDD', 'H']],
                      date_parser=date_parser)
-    df.set_index('YYYYMMDD_HH', inplace=True)
+    df.set_index('YYYYMMDD_H', inplace=True)
     return df
-
-
-def chunk_splitter(raw):
-    """
-    Generator to read a raw file and yield chunks that are separated by 'empty lines': "# "
-
-    Parameters
-    ----------
-    raw : str
-
-    Yields
-    -------
-    str
-    """
-    chunk = []
-    for line in raw.splitlines():
-        if line == "# ":
-            if len(chunk) == 0:
-                continue
-            else:
-                yield chunk
-                chunk = []
-        else:
-            chunk.append(line)
-    else:
-        yield chunk
