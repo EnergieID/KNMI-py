@@ -35,11 +35,8 @@ All raw data is included as argument to the DataFrame
 
 ```python
 import knmi
-df = knmi.get_day_data_dataframe(stations=[260])
-print(df.disclaimer)
-print(df.stations)
-print(df.legend)
-df = df.rename(columns=df.legend)
+
+df = knmi.get_day_data_dataframe(stations=[260], start='2020-01-01', end='2023-12-31')
 print(df)
 ```
 
