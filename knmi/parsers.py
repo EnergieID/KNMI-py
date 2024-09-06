@@ -116,7 +116,7 @@ def parse_hourly_dataframe(data) -> pd.DataFrame:
         datetimes = [dt.datetime.strptime(date, "%Y%m%d") + dt.timedelta(hours=int(h) - 1) for date, h in zip(date, hh)]
         return pd.to_datetime(datetimes)
 
-    df = pd.read_csv(StringIO(data), parse_dates=[['YYYYMMDD', 'H']],
+    df = pd.read_csv(StringIO(data), parse_dates=[['YYYYMMDD', 'HH']],
                      date_parser=date_parser)
-    df.set_index('YYYYMMDD_H', inplace=True)
+    df.set_index('YYYYMMDD_HH', inplace=True)
     return df
