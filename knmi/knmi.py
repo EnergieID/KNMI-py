@@ -153,6 +153,7 @@ def get_hour_data_raw(stations: Union[List[int], str], start: Union[dt.date, str
     r = requests.post(url=url, data=params)
     r.raise_for_status()
     disclaimer, stations, legend, data = parse_day_data(raw=r.text)
+    data = data.replace('HH', 'H')
     return disclaimer, stations, legend, data
 
 def get_hour_data_dataframe(stations, start=None, end=None, inseason=False, variables=None):
