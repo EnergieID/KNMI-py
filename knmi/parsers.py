@@ -112,11 +112,11 @@ def parse_dataframe(data):
 
 
 def parse_hourly_dataframe(data) -> pd.DataFrame:
-    def date_parser(date, hh):
-        datetimes = [dt.datetime.strptime(date, "%Y%m%d") + dt.timedelta(hours=int(h) - 1) for date, h in zip(date, hh)]
-        return pd.to_datetime(datetimes)
 
-    df = pd.read_csv(StringIO(data), parse_dates=[['YYYYMMDD', 'H']],
-                     date_parser=date_parser)
-    df.set_index('YYYYMMDD_H', inplace=True)
+    df = pd.read_csv(StringIO(data), dtype={"YYYYMMDD": str, "HH": str})
+
+    hour_column = (df["HH"].astype(int) - 1).astype(str).str.zfill(2)  # zero padded, and shifted to 0-23
+    df['YYYYMMDD_HH'] = pd.to_datetime(df["YYYYMMDD"] + hour_column, format="%Y%m%d%H")
+    df.drop(["HH", "YYYYMMDD", "HH.1", "YYYYMMDD.1"], axis=1, inplace=True, errors="ignore")  # remove duplicate columns
+    df.set_index('YYYYMMDD_HH', inplace=True)
     return df
