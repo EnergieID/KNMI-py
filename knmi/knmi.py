@@ -1,11 +1,20 @@
 from typing import List, Union, Optional, Dict
 import datetime as dt
+import sys
+
+if sys.version_info >= (3, 8):
+    from importlib import metadata
+else:
+    import importlib_metadata as metadata  # type: ignore
 
 import requests
 from .parsers import parse_day_data, parse_dataframe, parse_forecast_data, parse_hourly_dataframe
 
 __title__ = "knmi-py"
-__version__ = "0.1.10"
+try:
+    __version__ = metadata.version("knmi-py")
+except metadata.PackageNotFoundError:
+    __version__ = "0.0.0-dev"
 __author__ = "EnergieID.be"
 __license__ = "MIT"
 
