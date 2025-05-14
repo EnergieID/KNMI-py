@@ -1,0 +1,41 @@
+name: Publish Python Package to PyPI
+
+on:
+  release:
+    types: [published] # This workflow runs when a new GitHub Release is published
+
+permissions:
+  contents: read      # To checkout the repository
+  id-token: write   # IMPORTANT: mandatory for trusted publishing to PyPI
+
+jobs:
+  build-and-publish:
+    name: Build and publish Python distributions to PyPI
+    runs-on: ubuntu-latest
+    environment: # Recommended: configure a 'pypi' environment in your repo settings
+      name: pypi
+      url: https://pypi.org/p/knmi-py # Optional: Link to your PyPI project
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11" # Or your primary build Python version
+
+      - name: Install UV
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+      - name: Add uv to PATH # Ensures uv is available in subsequent steps
+        run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Install build dependencies
+        run: uv pip install build --system # Install 'build' globally in the runner for this job
+
+      - name: Build package
+        run: uv run python -m build # 'uv run' is not strictly necessary here but good practice
+                                    # 'python -m build' will use pyproject.toml
+
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
