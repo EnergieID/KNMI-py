@@ -11,7 +11,8 @@ readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [
-    { name = "EnergieID.be", email = "jan@energieid.be" },
+    { name = "Jan", email = "jan@energieid.be" },
+    { name = "Oscar", email = "oscar@energieid.be" }
 ]
 keywords = ["knmi", "weather", "data", "pandas", "api", "netherlands"]
 
@@ -62,7 +63,9 @@ packages = ["knmi"]
 
 [tool.ruff]
 line-length = 120
-select = ["E", "W", "F", "I", "C", "B"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
 ignore = []
 
 [tool.ruff.format]

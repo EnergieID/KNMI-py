@@ -1,6 +1,6 @@
-from typing import List, Union, Optional, Dict
 import datetime as dt
 import sys
+from typing import Dict, List, Optional, Union
 
 if sys.version_info >= (3, 8):
     from importlib import metadata
@@ -8,7 +8,8 @@ else:
     import importlib_metadata as metadata  # type: ignore
 
 import requests
-from .parsers import parse_day_data, parse_dataframe, parse_forecast_data, parse_hourly_dataframe
+
+from .parsers import parse_dataframe, parse_day_data, parse_forecast_data, parse_hourly_dataframe
 
 __title__ = "knmi-py"
 try:
@@ -20,15 +21,14 @@ __license__ = "MIT"
 
 
 def _get_parameters(
-        stations: Union[List[int], str],
-        start: Union[dt.date, str],
-        end: Union[dt.date, str],
-        inseason: bool = False,
-        variables: Optional[List[str]] = None,
-        *,
-        include_hour=False,
+    stations: Union[List[int], str],
+    start: Union[dt.date, str],
+    end: Union[dt.date, str],
+    inseason: bool = False,
+    variables: Optional[List[str]] = None,
+    *,
+    include_hour=False,
 ) -> Dict:
-
     if start is None or end is None:
         raise TypeError("'start' and 'end' parameters are required")
 
@@ -56,7 +56,13 @@ def _get_parameters(
     return params
 
 
-def get_day_data_raw(stations: Union[List[int], str], start: Union[dt.date, str], end: Union[dt.date, str], inseason: bool = False, variables: Optional[List[str]] = None):
+def get_day_data_raw(
+    stations: Union[List[int], str],
+    start: Union[dt.date, str],
+    end: Union[dt.date, str],
+    inseason: bool = False,
+    variables: Optional[List[str]] = None,
+):
     """
     Get daily weather data from KNMI
 
@@ -121,8 +127,9 @@ def get_day_data_dataframe(stations: Union[List[int], str], start=None, end=None
     Pandas DataFrame
     """
 
-    disclaimer, stations, legend, data = get_day_data_raw(stations=stations, start=start, end=end, inseason=inseason,
-                                                          variables=variables)
+    disclaimer, stations, legend, data = get_day_data_raw(
+        stations=stations, start=start, end=end, inseason=inseason, variables=variables
+    )
 
     df = parse_dataframe(data=data)
     # df.legend = legend
@@ -132,7 +139,13 @@ def get_day_data_dataframe(stations: Union[List[int], str], start=None, end=None
     return df
 
 
-def get_hour_data_raw(stations: Union[List[int], str], start: Union[dt.date, str], end: Union[dt.date, str], inseason: bool = False, variables: Optional[List[str]] = None):
+def get_hour_data_raw(
+    stations: Union[List[int], str],
+    start: Union[dt.date, str],
+    end: Union[dt.date, str],
+    inseason: bool = False,
+    variables: Optional[List[str]] = None,
+):
     """
     Get daily weather data from KNMI
 
@@ -164,9 +177,11 @@ def get_hour_data_raw(stations: Union[List[int], str], start: Union[dt.date, str
     disclaimer, stations, legend, data = parse_day_data(raw=r.text)
     return disclaimer, stations, legend, data
 
+
 def get_hour_data_dataframe(stations, start=None, end=None, inseason=False, variables=None):
-    disclaimer, stations, legend, data = get_hour_data_raw(stations=stations, start=start, end=end, inseason=inseason,
-                                                          variables=variables)
+    disclaimer, stations, legend, data = get_hour_data_raw(
+        stations=stations, start=start, end=end, inseason=inseason, variables=variables
+    )
     df = parse_hourly_dataframe(data=data)
     return df
 
@@ -193,7 +208,7 @@ def get_forecast_dataframe(station=260, conform_values=True, variables=None):
     if station != 260:
         raise NotImplementedError("Only station 260 (De Bilt) is supported for forecasts")
 
-    url = 'http://www.knmi.nl/nederland-nu/weer/verwachtingen'
+    url = "http://www.knmi.nl/nederland-nu/weer/verwachtingen"
 
     r = requests.get(url)
     r.raise_for_status()
@@ -201,18 +216,18 @@ def get_forecast_dataframe(station=260, conform_values=True, variables=None):
     df = parse_forecast_data(raw=r.content)
 
     if conform_values:
-        df['STN'] = station
-        df['RH'] = df['neerslag'].map(lambda x: float(x) if x > 0 else -1) * 10
-        df['TX'] = df['temp_max'].astype(float) * 10
-        df['TN'] = df['temp_min'].astype(float) * 10
-        df['FG'] = df['windkracht'].map(beaufort_mapping) * 10
-        df['DDVEC'] = df['windrichting'].map(winddir_mapping)
-        df['SP'] = df['zonneschijn'].map(lambda x: int(x * 100))
+        df["STN"] = station
+        df["RH"] = df["neerslag"].map(lambda x: float(x) if x > 0 else -1) * 10
+        df["TX"] = df["temp_max"].astype(float) * 10
+        df["TN"] = df["temp_min"].astype(float) * 10
+        df["FG"] = df["windkracht"].map(beaufort_mapping) * 10
+        df["DDVEC"] = df["windrichting"].map(winddir_mapping)
+        df["SP"] = df["zonneschijn"].map(lambda x: int(x * 100))
 
     if variables is not None:
         vars = list(variables)
-        if 'STN' in df.columns and 'STN' not in vars:
-            vars.append('STN')
+        if "STN" in df.columns and "STN" not in vars:
+            vars.append("STN")
         df = df[vars]
 
     return df
@@ -239,13 +254,4 @@ beaufort_mapping = {
 
 # maps a wind direction (in Dutch) to an orientation according to the API
 # note: North = 360, 0 indicates calm/variable
-winddir_mapping = {
-    'N': 360,
-    'NO': 45,
-    'O': 90,
-    'ZO': 135,
-    'Z': 180,
-    'ZW': 225,
-    'W': 270,
-    'NW': 315
-}
+winddir_mapping = {"N": 360, "NO": 45, "O": 90, "ZO": 135, "Z": 180, "ZW": 225, "W": 270, "NW": 315}
