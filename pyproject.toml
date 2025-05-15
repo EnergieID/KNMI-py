@@ -1,7 +1,6 @@
 [build-system]
 requires = ["hatchling>=1.11.0"]
 build-backend = "hatchling.build"
-backend-path = ["."]
 
 [project]
 name = "knmi-py"
@@ -12,10 +11,9 @@ requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [
     { name = "Jan", email = "jan@energieid.be" },
-    { name = "Oscar", email = "oscar@energieid.be" }
+    { name = "Oscar", email = "oscar@energieid.be" },
 ]
 keywords = ["knmi", "weather", "data", "pandas", "api", "netherlands"]
-
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -28,56 +26,59 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
     "Natural Language :: English",
     "Natural Language :: Dutch",
 ]
-
-dependencies = [
-    "requests>=2.25.0",
-    "pandas>=1.5.3",
-    "beautifulsoup4>=4.9.0",
-]
+dependencies = ["requests>=2.25.0", "pandas>=1.5.3", "beautifulsoup4>=4.9.0"]
 
 [project.urls]
 Homepage = "https://github.com/EnergieID/KNMI-py"
 Repository = "https://github.com/EnergieID/KNMI-py"
 "Bug Tracker" = "https://github.com/EnergieID/KNMI-py/issues"
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
-    "pytest-cov",
-    "ruff",
-    "mypy",
-    "uv",
-    "build",
-    "twine",
-]
-
-[tool.hatch.version]
-# Static version defined in [project].version
 
 [tool.hatch.build.targets.wheel]
-packages = ["knmi"]
+packages = ["src/knmi"]
 
-[tool.ruff]
-line-length = 120
+[tool.tox]
+requires = ["tox>=4.2", "tox-uv>=1.0"]
+env_list = ["py39", "py311", "py312", "py313"]
+isolated_build = true
 
-[tool.ruff.lint]
-select = ["E", "F", "W"]
-ignore = []
+[tool.tox.gh_actions]
+python = { "3.9" = "py39", "3.10" = "py310", "3.11" = "py311", "3.12" = "py312", "3.13" = "py313" }
 
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
+[tool.tox.env_run_base]
+description = "Run unit tests with pytest"
+package = "uv-editable"
+deps = [".[{env:TOX_DEPS_EXTRAS:dev}]"]
+change_dir = "{tox_root}"
+set_env = { PYTHONPATH = "{tox_root}/src" }
+commands = [
+    ["pytest", "{posargs:tests/}"],
+]
 
-[tool.uv.sources]
-knmi-py = { workspace = true }
+[tool.tox.env.py39]
+description = "Run tests on Python 3.9"
+
+[tool.tox.env.py311]
+description = "Run tests on Python 3.11"
+
+[tool.tox.env.py312]
+description = "Run tests on Python 3.12"
+
+[tool.tox.env.py313]
+description = "Run tests on Python 3.13"
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
 
 [dependency-groups]
 dev = [
     "ipykernel>=6.29.5",
     "jupyter>=1.1.1",
-    "knmi-py",
+    "pip>=25.1.1",
 ]

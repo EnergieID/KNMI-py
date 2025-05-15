@@ -2,7 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/knmi-py.svg)](https://badge.fury.io/py/knmi-py)
 <!-- Optional: Add a GitHub Actions build status badge once CI is set up -->
-<!-- [![Build Status](https://github.com/EnergieID/KNMI-py/actions/workflows/python-tests.yml/badge.svg)](https://github.com/EnergieID/KNMI-py/actions/workflows/python-tests.yml) -->
+<!-- [![Build Status](https://github.com/EnergieID/KNMI-py/actions/workflows/pypi-publish.yml/badge.svg)](https://github.com/EnergieID/KNMI-py/actions/workflows/pypi-publish.yml) -->
 
 Python wrapper to fetch and parse daily and hourly weather observations from KNMI,
 either as raw text, CSV-like strings, or Pandas DataFrames.
@@ -37,13 +37,6 @@ Need to find a station number or understand what the weather variable abbreviati
 - `knmi.stations`: A dictionary of all available KNMI weather stations.
 - `knmi.variables`: A dictionary providing explanations for weather variable codes.
 
-<!--
-## Metadata included in DataFrame (Note)
-The raw disclaimer, station info, and legend are returned by the `_raw` functions.
-When using the `_dataframe` functions, this metadata is not directly attached to the DataFrame object
-to maintain a clean data structure. If you need this metadata, please use the corresponding `_raw` function.
--->
-
 ## Example Usage
 
 ```python
@@ -74,6 +67,16 @@ print(hourly_df.head())
 
 The KNMI-py Python library is not affiliated with, created by, or maintained by KNMI. It merely uses the publicly available KNMI API to request data.
 
-## Contributing
+## Contributing & Development
+
 Contributions are welcome! Please feel free to open an issue or submit a pull request.
-This project uses `uv` for development and `pyproject.toml` for packaging.
+
+This project uses modern Python development tools:
+- **Packaging:** `pyproject.toml` (with `hatchling` as the build backend).
+- **Dependency Management & Task Running:** `uv` is used for fast dependency management.
+- **Linting & Formatting:** `Ruff` (configured via `pyproject.toml` or `ruff.toml`).
+- **Pre-commit Hooks:** Used to ensure code quality and consistency before commits.
+- **Testing:** `pytest` for running tests.
+- **Multi-version Testing:** `tox` (with `tox-uv`) is used to ensure compatibility across multiple Python versions (currently Python 3.9+). Run `tox` to execute tests in all configured environments.
+
+Please ensure pre-commit hooks pass and tests succeed before submitting a pull request.

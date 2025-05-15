@@ -1,15 +1,16 @@
 import datetime as dt
-import sys
-from typing import Dict, List, Optional, Union
 
-if sys.version_info >= (3, 8):
-    from importlib import metadata
-else:
-    import importlib_metadata as metadata  # type: ignore
+from importlib import metadata
+from typing import Union
 
 import requests
 
-from .parsers import parse_dataframe, parse_day_data, parse_forecast_data, parse_hourly_dataframe
+from .parsers import (
+    parse_dataframe,
+    parse_day_data,
+    parse_forecast_data,
+    parse_hourly_dataframe,
+)
 
 __title__ = "knmi-py"
 try:
@@ -21,14 +22,14 @@ __license__ = "MIT"
 
 
 def _get_parameters(
-    stations: Union[List[int], str],
+    stations: Union[list[int], str],
     start: Union[dt.date, str],
     end: Union[dt.date, str],
     inseason: bool = False,
-    variables: Optional[List[str]] = None,
+    variables: Union[list[str], None] = None,
     *,
     include_hour=False,
-) -> Dict:
+) -> dict:
     if start is None or end is None:
         raise TypeError("'start' and 'end' parameters are required")
 
@@ -57,11 +58,11 @@ def _get_parameters(
 
 
 def get_day_data_raw(
-    stations: Union[List[int], str],
+    stations: Union[list[int], str],
     start: Union[dt.date, str],
     end: Union[dt.date, str],
     inseason: bool = False,
-    variables: Optional[List[str]] = None,
+    variables: Union[list[str], None] = None,  # Fixed type annotation
 ):
     """
     Get daily weather data from KNMI
@@ -101,7 +102,13 @@ def get_day_data_raw(
     return disclaimer, stations, legend, data
 
 
-def get_day_data_dataframe(stations: Union[List[int], str], start=None, end=None, inseason=False, variables=None):
+def get_day_data_dataframe(
+    stations: Union[list[int], str],
+    start=None,
+    end=None,
+    inseason=False,
+    variables=None,
+):
     """
     Get daily weather data from KNMI as a Pandas DataFrame
 
@@ -140,11 +147,11 @@ def get_day_data_dataframe(stations: Union[List[int], str], start=None, end=None
 
 
 def get_hour_data_raw(
-    stations: Union[List[int], str],
+    stations: Union[list[int], str],
     start: Union[dt.date, str],
     end: Union[dt.date, str],
     inseason: bool = False,
-    variables: Optional[List[str]] = None,
+    variables: Union[list[str], None] = None,  # Fixed type annotation
 ):
     """
     Get daily weather data from KNMI
@@ -170,7 +177,9 @@ def get_hour_data_raw(
     """
 
     url = "https://www.daggegevens.knmi.nl/klimatologie/uurgegevens"
-    params = _get_parameters(stations, start, end, inseason, variables, include_hour=True)
+    params = _get_parameters(
+        stations, start, end, inseason, variables, include_hour=True
+    )
 
     r = requests.post(url=url, data=params)
     r.raise_for_status()
@@ -178,7 +187,9 @@ def get_hour_data_raw(
     return disclaimer, stations, legend, data
 
 
-def get_hour_data_dataframe(stations, start=None, end=None, inseason=False, variables=None):
+def get_hour_data_dataframe(
+    stations, start=None, end=None, inseason=False, variables=None
+):
     disclaimer, stations, legend, data = get_hour_data_raw(
         stations=stations, start=start, end=end, inseason=inseason, variables=variables
     )
@@ -206,7 +217,9 @@ def get_forecast_dataframe(station=260, conform_values=True, variables=None):
     Pandas DataFrame
     """
     if station != 260:
-        raise NotImplementedError("Only station 260 (De Bilt) is supported for forecasts")
+        raise NotImplementedError(
+            "Only station 260 (De Bilt) is supported for forecasts"
+        )
 
     url = "http://www.knmi.nl/nederland-nu/weer/verwachtingen"
 
@@ -254,4 +267,13 @@ beaufort_mapping = {
 
 # maps a wind direction (in Dutch) to an orientation according to the API
 # note: North = 360, 0 indicates calm/variable
-winddir_mapping = {"N": 360, "NO": 45, "O": 90, "ZO": 135, "Z": 180, "ZW": 225, "W": 270, "NW": 315}
+winddir_mapping = {
+    "N": 360,
+    "NO": 45,
+    "O": 90,
+    "ZO": 135,
+    "Z": 180,
+    "ZW": 225,
+    "W": 270,
+    "NW": 315,
+}

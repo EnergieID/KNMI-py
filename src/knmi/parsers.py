@@ -25,7 +25,11 @@ def parse_day_data(raw: str):
     lines = raw.splitlines()
 
     # Split the header and data
-    csv_header = list(itertools.takewhile(lambda line: line.startswith("#") or line.startswith('"#'), lines))
+    csv_header = list(
+        itertools.takewhile(
+            lambda line: line.startswith("#") or line.startswith('"#'), lines
+        )
+    )
     data_numeric = "\n".join(lines[len(csv_header) :]).replace(" ", "")
     data_header = csv_header.pop(-1).replace("#", "").replace(" ", "")
     data = data_header + "\n" + data_numeric
@@ -36,7 +40,9 @@ def parse_day_data(raw: str):
     stations = {}
     legend = {}
     try:
-        start_station_line = [i for i, line in enumerate(csv_header) if line.startswith("# STN")][0] + 1
+        start_station_line = [
+            i for i, line in enumerate(csv_header) if line.startswith("# STN")
+        ][0] + 1
         station_id_pattern = re.compile(r"# \d{3}")
     except IndexError:
         print("KNMI csv output format changed")
@@ -44,7 +50,10 @@ def parse_day_data(raw: str):
     else:
         i = 0
         for i, station_line in enumerate(
-            itertools.takewhile(lambda line: station_id_pattern.match(line), csv_header[start_station_line:])
+            itertools.takewhile(
+                lambda line: station_id_pattern.match(line),
+                csv_header[start_station_line:],
+            )
         ):
             station_split = station_line.lstrip("#").split()
             try:
@@ -65,7 +74,9 @@ def parse_day_data(raw: str):
         # the lines from which to retrieve the legend should be the remaining lines
         for legend_line in csv_header[end_station_line + 1 :]:
             key, *values = legend_line.lstrip("# ").split(":")
-            legend[key.strip()] = ":".join(values)  # Need to re-join because ':' is used in URLs and such
+            legend[key.strip()] = ":".join(
+                values
+            )  # Need to re-join because ':' is used in URLs and such
 
     return disclaimer, stations, legend, data
 
@@ -121,8 +132,12 @@ def parse_dataframe(data):
 def parse_hourly_dataframe(data) -> pd.DataFrame:
     df = pd.read_csv(StringIO(data), dtype={"YYYYMMDD": str, "HH": str})
 
-    hour_column = (df["HH"].astype(int) - 1).astype(str).str.zfill(2)  # zero padded, and shifted to 0-23
+    hour_column = (
+        (df["HH"].astype(int) - 1).astype(str).str.zfill(2)
+    )  # zero padded, and shifted to 0-23
     df["YYYYMMDD_HH"] = pd.to_datetime(df["YYYYMMDD"] + hour_column, format="%Y%m%d%H")
-    df.drop(["HH", "YYYYMMDD", "HH.1", "YYYYMMDD.1"], axis=1, inplace=True, errors="ignore")  # remove duplicate columns
+    df.drop(
+        ["HH", "YYYYMMDD", "HH.1", "YYYYMMDD.1"], axis=1, inplace=True, errors="ignore"
+    )  # remove duplicate columns
     df.set_index("YYYYMMDD_HH", inplace=True)
     return df
